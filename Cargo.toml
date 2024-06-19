@@ -1,0 +1,15 @@
+[package]
+name = "osc-utils"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+rosc = "0.10.1"
+
+[[bin]]
+name = "osc-client"
+path = "src/osc-client.rs"
+
+[[bin]]
+name = "osc-server"
+path = "src/osc-server.rs"
