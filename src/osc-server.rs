@@ -1,8 +1,13 @@
 use std::net::{SocketAddrV4, Ipv4Addr, UdpSocket};
 use rosc::OscPacket;
 
+// Test with:
+// - osc-client (this package)
+// - oscsend 127.0.0.1 3131 /test/address s "hello, world!" (cli tool shipped with liblo)
+
 fn main() {
-    let addr = SocketAddrV4::new(Ipv4Addr::new(127, 0, 0, 1), 3131);
+    // Allow server to receive and send from/to any IP address ("0.0.0.0")
+    let addr = SocketAddrV4::new(Ipv4Addr::UNSPECIFIED, 3131);
 
     let socket = UdpSocket::bind(addr)
         .expect("cannot bind socket");
