@@ -4,11 +4,51 @@
 
 use std::net::{SocketAddrV4, Ipv4Addr, UdpSocket};
 
+use clap::Parser;
 use rosc::OscPacket;
 
+/// Receive OSC messages from client
+#[derive(Parser)]
+#[command(version, long_about = None)]
+struct Cli {
+    /// Server IP address
+    #[arg(short, long)]
+    addr: Option<String>,
+
+    /// Server port number
+    #[arg(short, long)]
+    port: Option<u16>,
+}
+
 fn main() {
+    let cli = Cli::parse();
+
+    let addr = match cli.addr.as_deref() {
+        Some(ip) => match ip.parse::<Ipv4Addr>() {
+            Ok(ip) => ip,
+            Err(error) => {
+                println!("{error}, default to 0.0.0.0");
+                Ipv4Addr::UNSPECIFIED
+            }
+        },
+        None => Ipv4Addr::UNSPECIFIED
+    };
+
+    let port = match cli.port {
+        Some(num) => if num < 1024 {
+            println!("server cannot bind to system port, default to 3131");
+            3131
+        } else {
+            num
+        },
+        None => 3131
+    };
+
+    println!("value for addr: {addr}");
+    println!("value for port: {port}");
+
     // Allow server to receive and send from/to any IP address ("0.0.0.0")
-    let addr = SocketAddrV4::new(Ipv4Addr::UNSPECIFIED, 3131);
+    let addr = SocketAddrV4::new(addr, port);
 
     let socket = UdpSocket::bind(addr)
         .expect("cannot bind socket");
