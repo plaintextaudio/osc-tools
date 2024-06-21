@@ -1,9 +1,10 @@
-use std::net::{SocketAddrV4, Ipv4Addr, UdpSocket};
-use rosc::OscPacket;
-
 // Test with:
 // - osc-client (this package)
 // - oscsend 127.0.0.1 3131 /test/address s "hello, world!" (cli tool shipped with liblo)
+
+use std::net::{SocketAddrV4, Ipv4Addr, UdpSocket};
+
+use rosc::OscPacket;
 
 fn main() {
     // Allow server to receive and send from/to any IP address ("0.0.0.0")

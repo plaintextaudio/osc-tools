@@ -1,14 +1,15 @@
+// Test with:
+// - osc-server (this package)
+// - oscdump 3131 (cli tool shipped with liblo)
+
 use std::net::{SocketAddrV4, Ipv4Addr, UdpSocket};
 
 use clap::Parser;
 use rosc::{OscPacket,OscMessage,OscType};
 
-// Test with:
-// - osc-server (this package)
-// - oscdump 3131 (cli tool shipped with liblo)
-
+/// Send OSC messages to server
 #[derive(Parser)]
-#[command(version, about, long_about = None)]
+#[command(version, long_about = None)]
 struct Cli {
     /// Server IP address
     #[arg(short, long)]
@@ -23,13 +24,19 @@ fn main() {
     let cli = Cli::parse();
 
     let addr = match cli.addr.as_deref() {
-        None => "127.0.0.1",
-        Some(a) => a,
+        Some(ip) => match ip.parse::<Ipv4Addr>() {
+            Ok(ip) => ip,
+            Err(error) => {
+                println!("{error}, default to 127.0.0.1");
+                Ipv4Addr::LOCALHOST
+            }
+        },
+        None => Ipv4Addr::LOCALHOST
     };
 
     let port = match cli.port {
-        None => 3131,
-        Some(p) => p,
+        Some(num) => num,
+        None => 3131
     };
 
     println!("value for addr: {addr}");
@@ -40,7 +47,7 @@ fn main() {
     let client_addr = SocketAddrV4::new(Ipv4Addr::UNSPECIFIED, 0);
 
     // The server address and port number to exchange messages with
-    let server_addr = SocketAddrV4::new(Ipv4Addr::new(127, 0, 0, 1), port);
+    let server_addr = SocketAddrV4::new(addr, port);
 
     let socket = UdpSocket::bind(client_addr)
         .expect("cannot bind socket");
