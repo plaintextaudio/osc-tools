@@ -35,7 +35,12 @@ fn main() {
     };
 
     let port = match cli.port {
-        Some(num) => num,
+        Some(num) => if num < 1024 {
+            println!("server cannot bind to system port, default to 3131");
+            3131
+        } else {
+            num
+        },
         None => 3131
     };
 
