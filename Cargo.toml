@@ -2,8 +2,10 @@
 name = "osc-utils"
 version = "0.1.0"
 edition = "2021"
+description = "OSC client/server command line tools"
 
 [dependencies]
+clap = { version = "4.5.7", features = ["derive"] }
 rosc = "0.10.1"
 
 [[bin]]
