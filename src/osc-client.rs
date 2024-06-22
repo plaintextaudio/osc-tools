@@ -6,7 +6,7 @@ use std::net::{SocketAddrV4, Ipv4Addr, UdpSocket};
 
 use anyhow::{Context, Result};
 use clap::Parser;
-use rosc::{OscPacket,OscMessage,OscType};
+use rosc::{OscPacket, OscMessage, OscType};
 
 /// Send a message to an OSC server
 #[derive(Parser)]
@@ -47,16 +47,16 @@ fn main() -> Result<()> {
 
     let packet = OscPacket::Message(OscMessage {
         addr: "/client/message".to_string(),
-        args: vec![OscType::String("hi!".to_string())]
+        args: vec![OscType::String("stop".to_string())]
     });
 
     let buffer = rosc::encoder::encode(&packet)
-        .expect("error: cannot encode message");
+        .with_context(|| "Cannot encode message")?;
 
-    println!("sending message to {server_addr}");
+    println!("Sending message to {server_addr}");
 
     socket.send_to(&buffer, server_addr)
-        .expect("error: cannot send message");
+        .with_context(|| "Cannot send message")?;
 
     Ok(())
 }

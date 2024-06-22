@@ -6,7 +6,7 @@ use std::net::{SocketAddrV4, Ipv4Addr, UdpSocket};
 
 use anyhow::{Context, Result};
 use clap::Parser;
-use rosc::OscPacket;
+use rosc::{OscPacket, OscType};
 
 /// Receive messages from OSC clients
 #[derive(Parser)]
@@ -33,7 +33,7 @@ fn main() -> Result<()> {
 
     let port = match cli.port {
         Some(num) => if num < 1024 {
-            panic!("error: cannot bind socket to system port");
+            panic!("Error: cannot bind socket to system port");
         } else {
             num
         },
@@ -47,27 +47,29 @@ fn main() -> Result<()> {
 
     let mut buffer = [0u8; rosc::decoder::MTU];
 
-    println!("waiting for messages on {server_addr}");
+    println!("Waiting for messages on {server_addr}");
 
     loop {
-        match socket.recv_from(&mut buffer) {
-            Ok((size, client_addr)) => {
-                println!("received packet of {size} bytes from {client_addr}");
 
-                let (_, packet) = rosc::decoder::decode_udp(&buffer[..size])
-                    .expect("error: cannot decode message");
+        let (size, client_addr) = socket.recv_from(&mut buffer)
+            .with_context(|| "Cannot receive message")?;
 
-                match packet {
-                    OscPacket::Message(msg) => {
-                        println!("{:?}", msg);
-                    }
-                    OscPacket::Bundle(bun) => {
-                        println!("{:?}", bun);
-                    }
+        println!("Received packet of {size} bytes from {client_addr}");
+
+        let (_, packet) = rosc::decoder::decode_udp(&buffer[..size])
+            .with_context(|| "Cannot decode message")?;
+
+        match packet {
+            OscPacket::Message(msg) => {
+                println!("{:?}", msg);
+
+                match &msg.args[0] {
+                    OscType::String(s) => if s == "stop" { break; },
+                    _ => (),
                 }
             }
-            Err(error) => {
-                println!("error: cannot receive message: {}", error);
+            OscPacket::Bundle(bun) => {
+                println!("{:?}", bun);
                 break;
             }
         }
