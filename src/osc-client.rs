@@ -1,21 +1,21 @@
 // Test with:
 // - osc-server (this package)
-// - oscdump 3131 (cli tool shipped with liblo)
+// - oscdump 3131 (shipped with liblo)
 
 use std::net::{SocketAddrV4, Ipv4Addr, UdpSocket};
 
 use clap::Parser;
 use rosc::{OscPacket,OscMessage,OscType};
 
-/// Send OSC messages to server
+/// Send a message to an OSC server
 #[derive(Parser)]
 #[command(version, long_about = None)]
 struct Cli {
-    /// Server IP address
+    /// Server IP address (default: 127.0.0.1)
     #[arg(short, long)]
     addr: Option<String>,
 
-    /// Server port number
+    /// Server port number (default: 3131)
     #[arg(short, long)]
     port: Option<u16>,
 }
@@ -24,47 +24,42 @@ fn main() {
     let cli = Cli::parse();
 
     let addr = match cli.addr.as_deref() {
-        Some(ip) => match ip.parse::<Ipv4Addr>() {
+        Some(ip_str) => match ip_str.parse::<Ipv4Addr>() {
             Ok(ip) => ip,
             Err(error) => {
-                println!("{error}, default to 127.0.0.1");
-                Ipv4Addr::LOCALHOST
+                panic!("error: {error}");
             }
         },
-        None => Ipv4Addr::LOCALHOST
+        // By default, send messages to localhost only (127.0.0.1)
+        None => Ipv4Addr::LOCALHOST,
     };
 
     let port = match cli.port {
-        Some(num) => if num < 1024 {
-            println!("server cannot bind to system port, default to 3131");
-            3131
-        } else {
-            num
-        },
-        None => 3131
+        Some(num) => num,
+        // By default, send messages to this port
+        None => 3131,
     };
 
-    println!("value for addr: {addr}");
-    println!("value for port: {port}");
-
-    // Allow client to send and receive to/from any IP address ("0.0.0.0")
-    // with a port number assigned by the operating system (":0")
-    let client_addr = SocketAddrV4::new(Ipv4Addr::UNSPECIFIED, 0);
-
-    // The server address and port number to exchange messages with
     let server_addr = SocketAddrV4::new(addr, port);
 
-    let socket = UdpSocket::bind(client_addr)
-        .expect("cannot bind socket");
+    // Allow client to send message to any IP address (0.0.0.0)
+    // with a port number assigned by the operating system (0)
+    let client_addr = SocketAddrV4::new(Ipv4Addr::UNSPECIFIED, 0);
 
-    let packet = OscPacket::Message(OscMessage{
-        addr: "/greet/me".to_string(),
+    let socket = UdpSocket::bind(client_addr)
+        .expect("error: cannot bind socket");
+
+    let packet = OscPacket::Message(OscMessage {
+        addr: "/client/message".to_string(),
         args: vec![OscType::String("hi!".to_string())]
     });
 
     let buffer = rosc::encoder::encode(&packet)
-        .expect("cannot encode message");
+        .expect("error: cannot encode message");
+
+    println!("sending message to {server_addr}");
 
     socket.send_to(&buffer, server_addr)
-        .expect("cannot send message");
+        .expect("error: cannot send message");
 }
+

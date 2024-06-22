@@ -1,21 +1,21 @@
 // Test with:
 // - osc-client (this package)
-// - oscsend 127.0.0.1 3131 /test/address s "hello, world!" (cli tool shipped with liblo)
+// - oscsend 127.0.0.1 3131 /oscsend/message s "hello!" (shipped with liblo)
 
 use std::net::{SocketAddrV4, Ipv4Addr, UdpSocket};
 
 use clap::Parser;
 use rosc::OscPacket;
 
-/// Receive OSC messages from client
+/// Receive messages from OSC clients
 #[derive(Parser)]
 #[command(version, long_about = None)]
 struct Cli {
-    /// Server IP address
+    /// Server IP address (default: 0.0.0.0)
     #[arg(short, long)]
     addr: Option<String>,
 
-    /// Server port number
+    /// Server port number (default: 3131)
     #[arg(short, long)]
     port: Option<u16>,
 }
@@ -24,57 +24,54 @@ fn main() {
     let cli = Cli::parse();
 
     let addr = match cli.addr.as_deref() {
-        Some(ip) => match ip.parse::<Ipv4Addr>() {
+        Some(ip_str) => match ip_str.parse::<Ipv4Addr>() {
             Ok(ip) => ip,
             Err(error) => {
-                println!("{error}, default to 0.0.0.0");
-                Ipv4Addr::UNSPECIFIED
+                panic!("error: {error}"); // invalid IPv4 address syntax
             }
         },
-        None => Ipv4Addr::UNSPECIFIED
+        // By default, receive messages from any IP address (0.0.0.0)
+        None => Ipv4Addr::UNSPECIFIED,
     };
 
     let port = match cli.port {
         Some(num) => if num < 1024 {
-            println!("server cannot bind to system port, default to 3131");
-            3131
+            panic!("error: cannot bind socket to system port");
         } else {
             num
         },
-        None => 3131
+        // By default, receive messages on this port
+        None => 3131,
     };
 
-    println!("value for addr: {addr}");
-    println!("value for port: {port}");
+    let server_addr = SocketAddrV4::new(addr, port);
 
-    // Allow server to receive and send from/to any IP address ("0.0.0.0")
-    let addr = SocketAddrV4::new(addr, port);
-
-    let socket = UdpSocket::bind(addr)
-        .expect("cannot bind socket");
+    let socket = UdpSocket::bind(server_addr)
+        .expect("error: cannot bind socket");
 
     let mut buffer = [0u8; rosc::decoder::MTU];
 
+    println!("waiting for messages on {server_addr}");
+
     loop {
         match socket.recv_from(&mut buffer) {
-            Ok((size, addr)) => {
-                println!("received packet with size {size} from: {addr}");
+            Ok((size, client_addr)) => {
+                println!("received packet of {size} bytes from {client_addr}");
 
                 let (_, packet) = rosc::decoder::decode_udp(&buffer[..size])
-                    .expect("error decoding message");
+                    .expect("error: cannot decode message");
 
                 match packet {
                     OscPacket::Message(msg) => {
-                        println!("osc address: {}", msg.addr);
-                        println!("osc arguments: {:?}", msg.args);
+                        println!("{:?}", msg);
                     }
-                    OscPacket::Bundle(bundle) => {
-                        println!("osc bundle: {:?}", bundle);
+                    OscPacket::Bundle(bun) => {
+                        println!("{:?}", bun);
                     }
                 }
             }
             Err(error) => {
-                println!("error receiving message: {}", error);
+                println!("error: cannot receive message: {}", error);
                 break;
             }
         }
