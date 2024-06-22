@@ -4,6 +4,7 @@
 
 use std::net::{SocketAddrV4, Ipv4Addr, UdpSocket};
 
+use anyhow::{Context, Result};
 use clap::Parser;
 use rosc::{OscPacket,OscMessage,OscType};
 
@@ -20,23 +21,18 @@ struct Cli {
     port: Option<u16>,
 }
 
-fn main() {
+fn main() -> Result<()> {
     let cli = Cli::parse();
 
     let addr = match cli.addr.as_deref() {
-        Some(ip_str) => match ip_str.parse::<Ipv4Addr>() {
-            Ok(ip) => ip,
-            Err(error) => {
-                panic!("error: {error}");
-            }
-        },
-        // By default, send messages to localhost only (127.0.0.1)
-        None => Ipv4Addr::LOCALHOST,
+        Some(ip) => ip,
+        None => "127.0.0.1",
     };
+
+    let addr = addr.parse::<Ipv4Addr>()?;
 
     let port = match cli.port {
         Some(num) => num,
-        // By default, send messages to this port
         None => 3131,
     };
 
@@ -47,7 +43,7 @@ fn main() {
     let client_addr = SocketAddrV4::new(Ipv4Addr::UNSPECIFIED, 0);
 
     let socket = UdpSocket::bind(client_addr)
-        .expect("error: cannot bind socket");
+        .with_context(|| "Cannot bind socket")?;
 
     let packet = OscPacket::Message(OscMessage {
         addr: "/client/message".to_string(),
@@ -61,5 +57,6 @@ fn main() {
 
     socket.send_to(&buffer, server_addr)
         .expect("error: cannot send message");
-}
 
+    Ok(())
+}

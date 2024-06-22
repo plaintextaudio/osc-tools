@@ -4,6 +4,7 @@
 
 use std::net::{SocketAddrV4, Ipv4Addr, UdpSocket};
 
+use anyhow::{Context, Result};
 use clap::Parser;
 use rosc::OscPacket;
 
@@ -20,19 +21,15 @@ struct Cli {
     port: Option<u16>,
 }
 
-fn main() {
+fn main() -> Result<()> {
     let cli = Cli::parse();
 
     let addr = match cli.addr.as_deref() {
-        Some(ip_str) => match ip_str.parse::<Ipv4Addr>() {
-            Ok(ip) => ip,
-            Err(error) => {
-                panic!("error: {error}"); // invalid IPv4 address syntax
-            }
-        },
-        // By default, receive messages from any IP address (0.0.0.0)
-        None => Ipv4Addr::UNSPECIFIED,
+        Some(ip) => ip,
+        None => "0.0.0.0",
     };
+
+    let addr = addr.parse::<Ipv4Addr>()?;
 
     let port = match cli.port {
         Some(num) => if num < 1024 {
@@ -40,14 +37,13 @@ fn main() {
         } else {
             num
         },
-        // By default, receive messages on this port
         None => 3131,
     };
 
     let server_addr = SocketAddrV4::new(addr, port);
 
     let socket = UdpSocket::bind(server_addr)
-        .expect("error: cannot bind socket");
+        .with_context(|| "Cannot bind socket")?;
 
     let mut buffer = [0u8; rosc::decoder::MTU];
 
@@ -76,4 +72,6 @@ fn main() {
             }
         }
     }
+
+    Ok(())
 }
