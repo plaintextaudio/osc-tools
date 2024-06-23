@@ -12,6 +12,9 @@ use rosc::{OscPacket, OscMessage, OscType};
 #[derive(Parser)]
 #[command(version, long_about = None)]
 struct Cli {
+    /// User message to send
+    msg: String,
+
     /// Server IP address (default: 127.0.0.1)
     #[arg(short, long)]
     addr: Option<String>,
@@ -47,7 +50,7 @@ fn main() -> Result<()> {
 
     let packet = OscPacket::Message(OscMessage {
         addr: "/client/message".to_string(),
-        args: vec![OscType::String("stop".to_string())]
+        args: vec![OscType::String(cli.msg)]
     });
 
     let buffer = rosc::encoder::encode(&packet)
