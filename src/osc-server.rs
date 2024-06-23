@@ -6,7 +6,7 @@ use std::net::{SocketAddrV4, Ipv4Addr, UdpSocket};
 
 use anyhow::{Context, Result};
 use clap::Parser;
-use rosc::{OscPacket, OscType};
+use rosc::{OscPacket, OscMessage, OscType};
 
 /// Receive messages from OSC clients
 #[derive(Parser)]
@@ -50,7 +50,6 @@ fn main() -> Result<()> {
     println!("Waiting for messages on {server_addr}");
 
     loop {
-
         let (size, client_addr) = socket.recv_from(&mut buffer)
             .with_context(|| "Cannot receive message")?;
 
@@ -64,7 +63,10 @@ fn main() -> Result<()> {
                 println!("{:?}", msg);
 
                 match &msg.args[0] {
-                    OscType::String(s) => if s == "stop" { break; },
+                    OscType::String(s) => if s == "stop" {
+                        println!("Stopping server");
+                        break;
+                    },
                     _ => (),
                 }
             }
@@ -73,6 +75,19 @@ fn main() -> Result<()> {
                 break;
             }
         }
+
+        let packet = OscPacket::Message(OscMessage {
+            addr: "/server/reply".to_string(),
+            args: vec![OscType::String("message received!".to_string())],
+        });
+
+        let reply = rosc::encoder::encode(&packet)
+            .with_context(|| "Cannot encode reply")?;
+
+        println!("Sending reply to {client_addr}");
+
+        socket.send_to(&reply, client_addr)
+            .with_context(|| "Cannot send reply")?;
     }
 
     Ok(())
