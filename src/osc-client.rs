@@ -2,11 +2,11 @@
 // - osc-server (this package)
 // - oscdump 3131 (shipped with liblo)
 
-use std::net::{SocketAddr, SocketAddrV4, Ipv4Addr, UdpSocket};
+use std::net::{Ipv4Addr, SocketAddr, SocketAddrV4, UdpSocket};
 
 use anyhow::{Context, Result};
 use clap::Parser;
-use rosc::{OscPacket, OscMessage, OscType};
+use rosc::{OscMessage, OscPacket, OscType};
 
 /// Send a message to an OSC server
 #[derive(Parser)]
@@ -45,25 +45,36 @@ fn main() -> Result<()> {
     // with a port number assigned by the operating system (0)
     let client_addr = SocketAddrV4::new(Ipv4Addr::UNSPECIFIED, 0);
 
-    let socket = UdpSocket::bind(client_addr)
-        .with_context(|| "Cannot bind socket")?;
+    let socket = UdpSocket::bind(client_addr).with_context(|| "Cannot bind socket")?;
 
     let packet = OscPacket::Message(OscMessage {
         addr: "/client/message".to_string(),
         args: vec![OscType::String(cli.msg)],
     });
 
-    let buffer = rosc::encoder::encode(&packet)
-        .with_context(|| "Cannot encode message")?;
+    send_msg(&socket, server_addr, &packet).with_context(|| "Cannot send message")?;
+    recv_msg(&socket, server_addr).with_context(|| "Cannot receive message")?;
 
-    println!("Sending message to {server_addr}");
+    Ok(())
+}
 
-    socket.send_to(&buffer, server_addr)
+fn send_msg(socket: &UdpSocket, server_addr: SocketAddrV4, packet: &OscPacket) -> Result<()> {
+    let buffer = rosc::encoder::encode(packet).with_context(|| "Cannot encode message")?;
+
+    println!("Sending message to {}", server_addr);
+
+    socket
+        .send_to(&buffer, server_addr)
         .with_context(|| "Cannot send message")?;
 
+    Ok(())
+}
+
+fn recv_msg(socket: &UdpSocket, server_addr: SocketAddrV4) -> Result<()> {
     let mut buffer = [0u8; rosc::decoder::MTU];
 
-    let (size, reply_addr) = socket.recv_from(&mut buffer)
+    let (size, reply_addr) = socket
+        .recv_from(&mut buffer)
         .with_context(|| "Cannot receive reply")?;
 
     if reply_addr != SocketAddr::V4(server_addr) {
@@ -72,8 +83,8 @@ fn main() -> Result<()> {
 
     println!("Received packet of {size} bytes from {reply_addr}");
 
-    let (_, packet) = rosc::decoder::decode_udp(&buffer[..size])
-        .with_context(|| "Cannot decode reply")?;
+    let (_, packet) =
+        rosc::decoder::decode_udp(&buffer[..size]).with_context(|| "Cannot decode reply")?;
 
     match packet {
         OscPacket::Message(msg) => {
