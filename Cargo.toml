@@ -5,7 +5,6 @@ edition = "2021"
 description = "OSC client/server command line tools"
 
 [dependencies]
-anyhow = "1.0.86"
 clap = { version = "4.5.7", features = ["derive"] }
 rosc = "0.10.1"
 

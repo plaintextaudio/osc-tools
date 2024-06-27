@@ -1,9 +1,13 @@
+use std::error;
 use std::net::{SocketAddr, SocketAddrV4, UdpSocket};
 
-use anyhow::Result;
 use rosc::OscPacket;
 
-pub fn send_msg(socket: &UdpSocket, server_addr: SocketAddrV4, packet: &OscPacket) -> Result<()> {
+pub fn send_msg(
+    socket: &UdpSocket,
+    server_addr: SocketAddrV4,
+    packet: &OscPacket,
+) -> Result<(), Box<dyn error::Error>> {
     let buffer = rosc::encoder::encode(packet)?;
 
     println!("Sending message to {}", server_addr);
@@ -12,7 +16,10 @@ pub fn send_msg(socket: &UdpSocket, server_addr: SocketAddrV4, packet: &OscPacke
     Ok(())
 }
 
-pub fn recv_msg(socket: &UdpSocket, server_addr: SocketAddrV4) -> Result<()> {
+pub fn recv_msg(
+    socket: &UdpSocket,
+    server_addr: SocketAddrV4,
+) -> Result<(), Box<dyn error::Error>> {
     let mut buffer = [0u8; rosc::decoder::MTU];
 
     let (size, reply_addr) = socket.recv_from(&mut buffer)?;

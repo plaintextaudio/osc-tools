@@ -2,9 +2,9 @@
 // - osc-server (this package)
 // - oscdump 3131 (shipped with liblo)
 
+use std::error;
 use std::net::{Ipv4Addr, SocketAddrV4, UdpSocket};
 
-use anyhow::Result;
 use clap::Parser;
 use rosc::{OscMessage, OscPacket, OscType};
 
@@ -26,7 +26,7 @@ struct Cli {
     port: Option<u16>,
 }
 
-fn main() -> Result<()> {
+fn main() -> Result<(), Box<dyn error::Error>> {
     let cli = Cli::parse();
 
     let addr = match cli.addr.as_deref() {
