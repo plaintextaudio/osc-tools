@@ -4,7 +4,7 @@
 
 use std::net::{Ipv4Addr, SocketAddrV4, UdpSocket};
 
-use anyhow::{Context, Result};
+use anyhow::Result;
 use clap::Parser;
 use rosc::{OscMessage, OscPacket, OscType};
 
@@ -43,19 +43,19 @@ fn main() -> Result<()> {
 
     let server_addr = SocketAddrV4::new(addr, port);
 
-    // Allow client to send message to any IP address (0.0.0.0)
-    // with a port number assigned by the operating system (0)
+    // Allow client to send a message to any IP address (0.0.0.0)
+    // from a port number assigned by the operating system (0)
     let client_addr = SocketAddrV4::new(Ipv4Addr::UNSPECIFIED, 0);
 
-    let socket = UdpSocket::bind(client_addr).with_context(|| "Cannot bind socket")?;
+    let socket = UdpSocket::bind(client_addr)?;
 
     let packet = OscPacket::Message(OscMessage {
         addr: "/client/message".to_string(),
         args: vec![OscType::String(cli.msg)],
     });
 
-    net::send_msg(&socket, server_addr, &packet).with_context(|| "Cannot send message")?;
-    net::recv_msg(&socket, server_addr).with_context(|| "Cannot receive message")?;
+    net::send_msg(&socket, server_addr, &packet)?;
+    net::recv_msg(&socket, server_addr)?;
 
     Ok(())
 }
