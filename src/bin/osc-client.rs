@@ -8,8 +8,6 @@ use std::net::{Ipv4Addr, SocketAddrV4, UdpSocket};
 use clap::Parser;
 use rosc::{OscMessage, OscPacket, OscType};
 
-mod net;
-
 /// Send a message to an OSC server
 #[derive(Parser)]
 #[command(version, long_about = None)]
@@ -54,8 +52,8 @@ fn main() -> Result<(), Box<dyn error::Error>> {
         args: vec![OscType::String(cli.msg)],
     });
 
-    net::send_msg(&socket, server_addr, &packet)?;
-    net::recv_msg(&socket, server_addr)?;
+    osc_utils::send_msg(&socket, server_addr, &packet)?;
+    osc_utils::recv_msg(&socket, server_addr)?;
 
     Ok(())
 }
