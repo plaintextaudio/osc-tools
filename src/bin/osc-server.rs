@@ -3,7 +3,7 @@
 // - oscsend 127.0.0.1 3131 /oscsend/message s "hello!" (shipped with liblo)
 
 use std::error;
-use std::net::{Ipv4Addr, SocketAddrV4, UdpSocket};
+use std::net::UdpSocket;
 
 use clap::Parser;
 use rosc::{OscMessage, OscPacket, OscType};
@@ -24,23 +24,12 @@ struct Arguments {
 fn main() -> Result<(), Box<dyn error::Error>> {
     let args = Arguments::parse();
 
-    let addr = match args.addr.as_deref() {
-        Some(ip) => ip,
-        None => "0.0.0.0",
-    };
+    let server_addr = osc_utils::parse_addr(args.addr, args.port, "0.0.0.0")?;
 
-    let addr = addr.parse::<Ipv4Addr>()?;
-
-    let port = match args.port {
-        Some(num) => num,
-        None => 3131,
-    };
-
-    if port < 1024 {
+    if server_addr.port() < 1024 {
         Err("cannot bind socket to system port")?;
     }
 
-    let server_addr = SocketAddrV4::new(addr, port);
     let socket = UdpSocket::bind(server_addr)?;
 
     let mut buffer = [0u8; rosc::decoder::MTU];

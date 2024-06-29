@@ -24,28 +24,10 @@ struct Arguments {
     port: Option<u16>,
 }
 
-fn parse_addr(args: &Arguments) -> Result<SocketAddrV4, Box<dyn error::Error>> {
-    let addr = match args.addr.as_deref() {
-        Some(ip) => ip,
-        None => "127.0.0.1",
-    };
-
-    let addr = addr.parse::<Ipv4Addr>()?;
-
-    let port = match args.port {
-        Some(num) => num,
-        None => 3131,
-    };
-
-    let server_addr = SocketAddrV4::new(addr, port);
-
-    Ok(server_addr)
-}
-
 fn main() -> Result<(), Box<dyn error::Error>> {
     let args = Arguments::parse();
 
-    let server_addr = parse_addr(&args)?;
+    let server_addr = osc_utils::parse_addr(args.addr, args.port, "127.0.0.1")?;
 
     // Allow client to send a message to any IP address (0.0.0.0)
     // from a port number assigned by the operating system (0)

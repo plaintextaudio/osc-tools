@@ -1,7 +1,27 @@
 use std::error;
-use std::net::{SocketAddr, SocketAddrV4, UdpSocket};
+use std::net::{Ipv4Addr, SocketAddr, SocketAddrV4, UdpSocket};
 
 use rosc::OscPacket;
+
+pub fn parse_addr(
+    args_addr: Option<String>,
+    args_port: Option<u16>,
+    default: &str,
+) -> Result<SocketAddrV4, Box<dyn error::Error>> {
+    let addr = match args_addr.as_deref() {
+        Some(ip) => ip,
+        None => default,
+    };
+
+    let addr = addr.parse::<Ipv4Addr>()?;
+
+    let port = match args_port {
+        Some(num) => num,
+        None => 3131,
+    };
+
+    Ok(SocketAddrV4::new(addr, port))
+}
 
 pub fn send_msg(
     socket: &UdpSocket,
