@@ -46,6 +46,9 @@ fn main() -> Result<(), Box<dyn error::Error>> {
                     OscType::String(s) => {
                         if s == "stop" {
                             println!("Stopping server...");
+                            println!("Sending reply to {}", client_addr);
+                            let reply = osc_utils::fill_packet("/server/reply", "stopping server");
+                            osc_utils::send_packet(&socket, client_addr, &reply)?;
                             break;
                         }
                     }

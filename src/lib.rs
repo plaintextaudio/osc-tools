@@ -47,7 +47,7 @@ pub fn recv_packet(
     buffer: &mut [u8],
 ) -> Result<(SocketAddrV4, OscPacket), Box<dyn error::Error>> {
     let (size, packet_addr) = socket.recv_from(buffer)?;
-    println!("Received packet of {} bytes from {}", size, packet_addr);
+    println!("\nReceived packet of {} bytes from {}", size, packet_addr);
 
     let packet_addr = match packet_addr {
         SocketAddr::V4(ipv4) => ipv4,
