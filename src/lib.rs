@@ -23,9 +23,9 @@ pub fn parse_addr(
     Ok(SocketAddrV4::new(addr, port))
 }
 
-pub fn send_msg(
+pub fn send_packet(
     socket: &UdpSocket,
-    peer_addr: &SocketAddrV4,
+    peer_addr: SocketAddrV4,
     packet: &OscPacket,
 ) -> Result<(), Box<dyn error::Error>> {
     let buffer = rosc::encoder::encode(packet)?;
@@ -35,7 +35,7 @@ pub fn send_msg(
     Ok(())
 }
 
-pub fn recv_msg(
+pub fn recv_packet(
     socket: &UdpSocket,
     buffer: &mut [u8],
 ) -> Result<(SocketAddrV4, OscPacket), Box<dyn error::Error>> {

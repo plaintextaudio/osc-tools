@@ -41,11 +41,11 @@ fn main() -> Result<(), Box<dyn error::Error>> {
 
     // Send message to server
     println!("Sending message to {}", server_addr);
-    osc_utils::send_msg(&socket, &server_addr, &message)?;
+    osc_utils::send_packet(&socket, server_addr, &message)?;
 
     // Receive reply from server
     let mut buffer = [0u8; rosc::decoder::MTU];
-    let (reply_addr, reply) = osc_utils::recv_msg(&socket, &mut buffer)?;
+    let (reply_addr, reply) = osc_utils::recv_packet(&socket, &mut buffer)?;
 
     if reply_addr != server_addr {
         Err("send and reply address mismatch")?

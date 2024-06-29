@@ -36,7 +36,7 @@ fn main() -> Result<(), Box<dyn error::Error>> {
     println!("Waiting for messages on {}", server_addr);
 
     loop {
-        let (client_addr, message) = osc_utils::recv_msg(&socket, &mut buffer)?;
+        let (client_addr, message) = osc_utils::recv_packet(&socket, &mut buffer)?;
 
         match message {
             OscPacket::Message(msg) => {
@@ -64,7 +64,7 @@ fn main() -> Result<(), Box<dyn error::Error>> {
         });
 
         println!("Sending reply to {}", client_addr);
-        osc_utils::send_msg(&socket, &client_addr, &reply)?;
+        osc_utils::send_packet(&socket, client_addr, &reply)?;
     }
 
     Ok(())
