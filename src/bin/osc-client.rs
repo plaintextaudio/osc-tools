@@ -4,6 +4,7 @@
 
 use std::error;
 use std::net::{Ipv4Addr, SocketAddrV4, UdpSocket};
+use std::time::Duration;
 
 use clap::Parser;
 use rosc::OscPacket;
@@ -40,6 +41,7 @@ fn main() -> Result<(), Box<dyn error::Error>> {
     osc_utils::send_packet(&socket, server_addr, &message)?;
 
     // Receive reply from server
+    socket.set_read_timeout(Some(Duration::from_secs(5)))?;
     let mut buffer = [0u8; rosc::decoder::MTU];
     let (reply_addr, reply) = osc_utils::recv_packet(&socket, &mut buffer)?;
 
