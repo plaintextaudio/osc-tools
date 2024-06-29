@@ -5,40 +5,29 @@ use rosc::OscPacket;
 
 pub fn send_msg(
     socket: &UdpSocket,
-    server_addr: SocketAddrV4,
+    peer_addr: &SocketAddrV4,
     packet: &OscPacket,
 ) -> Result<(), Box<dyn error::Error>> {
     let buffer = rosc::encoder::encode(packet)?;
 
-    println!("Sending message to {}", server_addr);
-    socket.send_to(&buffer, server_addr)?;
+    socket.send_to(&buffer, peer_addr)?;
 
     Ok(())
 }
 
 pub fn recv_msg(
     socket: &UdpSocket,
-    server_addr: SocketAddrV4,
-) -> Result<(), Box<dyn error::Error>> {
-    let mut buffer = [0u8; rosc::decoder::MTU];
+    buffer: &mut [u8],
+) -> Result<(SocketAddrV4, OscPacket), Box<dyn error::Error>> {
+    let (size, packet_addr) = socket.recv_from(buffer)?;
+    println!("Received packet of {} bytes from {}", size, packet_addr);
 
-    let (size, reply_addr) = socket.recv_from(&mut buffer)?;
-    println!("Received packet of {size} bytes from {reply_addr}");
-
-    if reply_addr != SocketAddr::V4(server_addr) {
-        panic!("Alert: send and reply address mismatch");
-    }
+    let packet_addr = match packet_addr {
+        SocketAddr::V4(ipv4) => ipv4,
+        SocketAddr::V6(_) => Err("IPv6 address not handled")?,
+    };
 
     let (_, packet) = rosc::decoder::decode_udp(&buffer[..size])?;
 
-    match packet {
-        OscPacket::Message(msg) => {
-            println!("{:?}", msg);
-        }
-        OscPacket::Bundle(bun) => {
-            println!("{:?}", bun);
-        }
-    }
-
-    Ok(())
+    Ok((packet_addr, packet))
 }

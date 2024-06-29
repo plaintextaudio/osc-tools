@@ -44,16 +44,33 @@ fn main() -> Result<(), Box<dyn error::Error>> {
     // Allow client to send a message to any IP address (0.0.0.0)
     // from a port number assigned by the operating system (0)
     let client_addr = SocketAddrV4::new(Ipv4Addr::UNSPECIFIED, 0);
-
     let socket = UdpSocket::bind(client_addr)?;
 
-    let packet = OscPacket::Message(OscMessage {
+    let message = OscPacket::Message(OscMessage {
         addr: "/client/message".to_string(),
         args: vec![OscType::String(cli.msg)],
     });
 
-    osc_utils::send_msg(&socket, server_addr, &packet)?;
-    osc_utils::recv_msg(&socket, server_addr)?;
+    // Send message to server
+    println!("Sending message to {}", server_addr);
+    osc_utils::send_msg(&socket, &server_addr, &message)?;
+
+    // Receive reply from server
+    let mut buffer = [0u8; rosc::decoder::MTU];
+    let (reply_addr, reply) = osc_utils::recv_msg(&socket, &mut buffer)?;
+
+    if reply_addr != server_addr {
+        Err("send and reply address mismatch")?
+    }
+
+    match reply {
+        OscPacket::Message(msg) => {
+            println!("{:?}", msg);
+        }
+        OscPacket::Bundle(bun) => {
+            println!("{:?}", bun);
+        }
+    }
 
     Ok(())
 }

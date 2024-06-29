@@ -43,21 +43,15 @@ fn main() -> Result<(), Box<dyn error::Error>> {
     };
 
     let server_addr = SocketAddrV4::new(addr, port);
-
     let socket = UdpSocket::bind(server_addr)?;
 
     let mut buffer = [0u8; rosc::decoder::MTU];
-
-    println!("Waiting for messages on {server_addr}");
+    println!("Waiting for messages on {}", server_addr);
 
     loop {
-        let (size, client_addr) = socket.recv_from(&mut buffer)?;
+        let (client_addr, message) = osc_utils::recv_msg(&socket, &mut buffer)?;
 
-        println!("Received packet of {size} bytes from {client_addr}");
-
-        let (_, packet) = rosc::decoder::decode_udp(&buffer[..size])?;
-
-        match packet {
+        match message {
             OscPacket::Message(msg) => {
                 println!("{:?}", msg);
 
@@ -77,16 +71,13 @@ fn main() -> Result<(), Box<dyn error::Error>> {
             }
         }
 
-        let packet = OscPacket::Message(OscMessage {
+        let reply = OscPacket::Message(OscMessage {
             addr: "/server/reply".to_string(),
             args: vec![OscType::String("message received!".to_string())],
         });
 
-        let reply = rosc::encoder::encode(&packet)?;
-
-        println!("Sending reply to {client_addr}");
-
-        socket.send_to(&reply, client_addr)?;
+        println!("Sending reply to {}", client_addr);
+        osc_utils::send_msg(&socket, &client_addr, &reply)?;
     }
 
     Ok(())
