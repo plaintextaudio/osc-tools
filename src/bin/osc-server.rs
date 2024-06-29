@@ -11,7 +11,7 @@ use rosc::{OscMessage, OscPacket, OscType};
 /// Receive messages from OSC clients
 #[derive(Parser)]
 #[command(version, long_about = None)]
-struct Cli {
+struct Arguments {
     /// Server IP address (default: 0.0.0.0)
     #[arg(short, long)]
     addr: Option<String>,
@@ -22,25 +22,23 @@ struct Cli {
 }
 
 fn main() -> Result<(), Box<dyn error::Error>> {
-    let cli = Cli::parse();
+    let args = Arguments::parse();
 
-    let addr = match cli.addr.as_deref() {
+    let addr = match args.addr.as_deref() {
         Some(ip) => ip,
         None => "0.0.0.0",
     };
 
     let addr = addr.parse::<Ipv4Addr>()?;
 
-    let port = match cli.port {
-        Some(num) => {
-            if num < 1024 {
-                panic!("Error: cannot bind socket to system port");
-            } else {
-                num
-            }
-        }
+    let port = match args.port {
+        Some(num) => num,
         None => 3131,
     };
+
+    if port < 1024 {
+        Err("cannot bind socket to system port")?;
+    }
 
     let server_addr = SocketAddrV4::new(addr, port);
     let socket = UdpSocket::bind(server_addr)?;

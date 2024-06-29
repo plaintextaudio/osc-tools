@@ -11,7 +11,7 @@ use rosc::{OscMessage, OscPacket, OscType};
 /// Send a message to an OSC server
 #[derive(Parser)]
 #[command(version, long_about = None)]
-struct Cli {
+struct Arguments {
     /// User message to send
     msg: String,
 
@@ -24,22 +24,28 @@ struct Cli {
     port: Option<u16>,
 }
 
-fn main() -> Result<(), Box<dyn error::Error>> {
-    let cli = Cli::parse();
-
-    let addr = match cli.addr.as_deref() {
+fn parse_addr(args: &Arguments) -> Result<SocketAddrV4, Box<dyn error::Error>> {
+    let addr = match args.addr.as_deref() {
         Some(ip) => ip,
         None => "127.0.0.1",
     };
 
     let addr = addr.parse::<Ipv4Addr>()?;
 
-    let port = match cli.port {
+    let port = match args.port {
         Some(num) => num,
         None => 3131,
     };
 
     let server_addr = SocketAddrV4::new(addr, port);
+
+    Ok(server_addr)
+}
+
+fn main() -> Result<(), Box<dyn error::Error>> {
+    let args = Arguments::parse();
+
+    let server_addr = parse_addr(&args)?;
 
     // Allow client to send a message to any IP address (0.0.0.0)
     // from a port number assigned by the operating system (0)
@@ -48,7 +54,7 @@ fn main() -> Result<(), Box<dyn error::Error>> {
 
     let message = OscPacket::Message(OscMessage {
         addr: "/client/message".to_string(),
-        args: vec![OscType::String(cli.msg)],
+        args: vec![OscType::String(args.msg)],
     });
 
     // Send message to server
