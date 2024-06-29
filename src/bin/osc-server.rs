@@ -6,7 +6,7 @@ use std::error;
 use std::net::UdpSocket;
 
 use clap::Parser;
-use rosc::{OscMessage, OscPacket, OscType};
+use rosc::{OscPacket, OscType};
 
 /// Receive messages from OSC clients
 #[derive(Parser)]
@@ -45,7 +45,7 @@ fn main() -> Result<(), Box<dyn error::Error>> {
                 match &msg.args[0] {
                     OscType::String(s) => {
                         if s == "stop" {
-                            println!("Stopping server");
+                            println!("Stopping server...");
                             break;
                         }
                     }
@@ -58,12 +58,8 @@ fn main() -> Result<(), Box<dyn error::Error>> {
             }
         }
 
-        let reply = OscPacket::Message(OscMessage {
-            addr: "/server/reply".to_string(),
-            args: vec![OscType::String("message received!".to_string())],
-        });
-
         println!("Sending reply to {}", client_addr);
+        let reply = osc_utils::fill_packet("/server/reply", "message received");
         osc_utils::send_packet(&socket, client_addr, &reply)?;
     }
 

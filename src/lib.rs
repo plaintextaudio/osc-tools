@@ -1,7 +1,7 @@
 use std::error;
 use std::net::{Ipv4Addr, SocketAddr, SocketAddrV4, UdpSocket};
 
-use rosc::OscPacket;
+use rosc::{OscMessage, OscPacket, OscType};
 
 pub fn parse_addr(
     args_addr: Option<String>,
@@ -21,6 +21,13 @@ pub fn parse_addr(
     };
 
     Ok(SocketAddrV4::new(addr, port))
+}
+
+pub fn fill_packet(osc_addr: &str, osc_args: &str) -> OscPacket {
+    OscPacket::Message(OscMessage {
+        addr: osc_addr.to_string(),
+        args: vec![OscType::String(osc_args.to_string())],
+    })
 }
 
 pub fn send_packet(

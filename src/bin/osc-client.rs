@@ -6,7 +6,7 @@ use std::error;
 use std::net::{Ipv4Addr, SocketAddrV4, UdpSocket};
 
 use clap::Parser;
-use rosc::{OscMessage, OscPacket, OscType};
+use rosc::OscPacket;
 
 /// Send a message to an OSC server
 #[derive(Parser)]
@@ -34,13 +34,9 @@ fn main() -> Result<(), Box<dyn error::Error>> {
     let client_addr = SocketAddrV4::new(Ipv4Addr::UNSPECIFIED, 0);
     let socket = UdpSocket::bind(client_addr)?;
 
-    let message = OscPacket::Message(OscMessage {
-        addr: "/client/message".to_string(),
-        args: vec![OscType::String(args.msg)],
-    });
-
     // Send message to server
     println!("Sending message to {}", server_addr);
+    let message = osc_utils::fill_packet("/client/message", &args.msg);
     osc_utils::send_packet(&socket, server_addr, &message)?;
 
     // Receive reply from server
