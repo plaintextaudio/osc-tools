@@ -6,16 +6,13 @@ use std::error;
 use std::net::{Ipv4Addr, SocketAddrV4, UdpSocket};
 use std::time::Duration;
 
-use clap::Parser;
+use clap::{Parser, Subcommand};
 use rosc::OscPacket;
 
 /// Send a message to an OSC server
 #[derive(Parser)]
 #[command(version, long_about = None)]
 struct Arguments {
-    /// User message to send
-    msg: String,
-
     /// Server IP address (default: 127.0.0.1)
     #[arg(short, long)]
     addr: Option<String>,
@@ -23,6 +20,17 @@ struct Arguments {
     /// Server port number (default: 3131)
     #[arg(short, long)]
     port: Option<u16>,
+
+    #[command(subcommand)]
+    command: Commands,
+}
+
+#[derive(Subcommand)]
+enum Commands {
+    /// Send a user message to server
+    Message { msg: String },
+    /// Ask the server to stop
+    Stop {},
 }
 
 fn main() -> Result<(), Box<dyn error::Error>> {
@@ -35,10 +43,20 @@ fn main() -> Result<(), Box<dyn error::Error>> {
     let client_addr = SocketAddrV4::new(Ipv4Addr::UNSPECIFIED, 0);
     let socket = UdpSocket::bind(client_addr)?;
 
-    // Send message to server
-    println!("Sending message to {}", server_addr);
-    let message = osc_utils::fill_packet("/client/message", &args.msg);
-    osc_utils::send_packet(&socket, server_addr, &message)?;
+    match &args.command {
+        Commands::Message { msg } => {
+            // Send message to server
+            println!("Sending message to {}", server_addr);
+            let message = osc_utils::fill_packet("/client/message", msg);
+            osc_utils::send_packet(&socket, server_addr, &message)?;
+        }
+        Commands::Stop {} => {
+            // Send message to server
+            println!("Sending message to {}", server_addr);
+            let message = osc_utils::fill_packet("/client/message", "stop");
+            osc_utils::send_packet(&socket, server_addr, &message)?;
+        }
+    }
 
     // Receive reply from server
     socket.set_read_timeout(Some(Duration::from_secs(5)))?;
