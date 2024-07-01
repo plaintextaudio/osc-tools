@@ -28,7 +28,10 @@ struct Arguments {
 #[derive(Subcommand)]
 enum Commands {
     /// Send a user message to server
-    Message { msg: String },
+    Message {
+        /// Message to send
+        msg: String,
+    },
     /// Ask the server to stop
     Stop {},
 }
