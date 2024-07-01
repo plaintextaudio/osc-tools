@@ -59,7 +59,7 @@ fn main() -> Result<(), Box<dyn error::Error>> {
     }
 
     // Receive reply from server
-    socket.set_read_timeout(Some(Duration::from_secs(5)))?;
+    socket.set_read_timeout(Some(Duration::from_secs(3)))?;
     let mut buffer = [0u8; rosc::decoder::MTU];
     let (reply_addr, reply) = osc_tools::recv_packet(&socket, &mut buffer)?;
 

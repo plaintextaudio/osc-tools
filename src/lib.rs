@@ -1,4 +1,5 @@
 use std::error;
+use std::io::ErrorKind;
 use std::net::{Ipv4Addr, SocketAddr, SocketAddrV4, UdpSocket};
 
 use rosc::{OscMessage, OscPacket, OscType};
@@ -46,7 +47,13 @@ pub fn recv_packet(
     socket: &UdpSocket,
     buffer: &mut [u8],
 ) -> Result<(SocketAddrV4, OscPacket), Box<dyn error::Error>> {
-    let (size, packet_addr) = socket.recv_from(buffer)?;
+    let (size, packet_addr) = match socket.recv_from(buffer) {
+        Ok(packet) => packet,
+        Err(ref e) if e.kind() == ErrorKind::WouldBlock => {
+            Err("timeout reached while receiving packet")?
+        }
+        Err(e) => Err(e)?,
+    };
     println!("\nReceived packet of {} bytes from {}", size, packet_addr);
 
     let packet_addr = match packet_addr {
