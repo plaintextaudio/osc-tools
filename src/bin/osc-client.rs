@@ -13,7 +13,7 @@ use rosc::OscPacket;
 #[derive(Parser)]
 #[command(version, long_about = None)]
 struct Arguments {
-    /// Server IP address (default: 127.0.0.1)
+    /// Server IP address  (default: 127.0.0.1)
     #[arg(short, long)]
     addr: Option<String>,
 
@@ -36,7 +36,7 @@ enum Commands {
 fn main() -> Result<(), Box<dyn error::Error>> {
     let args = Arguments::parse();
 
-    let server_addr = osc_utils::parse_addr(args.addr, args.port, "127.0.0.1")?;
+    let server_addr = osc_tools::parse_addr(args.addr, args.port, "127.0.0.1")?;
 
     // Allow client to send a message to any IP address (0.0.0.0)
     // from a port number assigned by the operating system (0)
@@ -47,21 +47,21 @@ fn main() -> Result<(), Box<dyn error::Error>> {
         Commands::Message { msg } => {
             // Send message to server
             println!("Sending message to {}", server_addr);
-            let message = osc_utils::fill_packet("/client/message", msg);
-            osc_utils::send_packet(&socket, server_addr, &message)?;
+            let message = osc_tools::fill_packet("/client/message", msg);
+            osc_tools::send_packet(&socket, server_addr, &message)?;
         }
         Commands::Stop {} => {
             // Send message to server
             println!("Sending message to {}", server_addr);
-            let message = osc_utils::fill_packet("/client/message", "stop");
-            osc_utils::send_packet(&socket, server_addr, &message)?;
+            let message = osc_tools::fill_packet("/client/message", "stop");
+            osc_tools::send_packet(&socket, server_addr, &message)?;
         }
     }
 
     // Receive reply from server
     socket.set_read_timeout(Some(Duration::from_secs(5)))?;
     let mut buffer = [0u8; rosc::decoder::MTU];
-    let (reply_addr, reply) = osc_utils::recv_packet(&socket, &mut buffer)?;
+    let (reply_addr, reply) = osc_tools::recv_packet(&socket, &mut buffer)?;
 
     if reply_addr != server_addr {
         Err("send and reply address mismatch")?

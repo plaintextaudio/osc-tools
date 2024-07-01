@@ -12,7 +12,7 @@ use rosc::{OscPacket, OscType};
 #[derive(Parser)]
 #[command(version, long_about = None)]
 struct Arguments {
-    /// Server IP address (default: 0.0.0.0)
+    /// Server IP address  (default: 0.0.0.0)
     #[arg(short, long)]
     addr: Option<String>,
 
@@ -24,7 +24,7 @@ struct Arguments {
 fn main() -> Result<(), Box<dyn error::Error>> {
     let args = Arguments::parse();
 
-    let server_addr = osc_utils::parse_addr(args.addr, args.port, "0.0.0.0")?;
+    let server_addr = osc_tools::parse_addr(args.addr, args.port, "0.0.0.0")?;
 
     if server_addr.port() < 1024 {
         Err("cannot bind socket to system port")?;
@@ -36,7 +36,7 @@ fn main() -> Result<(), Box<dyn error::Error>> {
     println!("Waiting for messages on {}", server_addr);
 
     loop {
-        let (client_addr, message) = osc_utils::recv_packet(&socket, &mut buffer)?;
+        let (client_addr, message) = osc_tools::recv_packet(&socket, &mut buffer)?;
 
         match message {
             OscPacket::Message(msg) => {
@@ -47,8 +47,8 @@ fn main() -> Result<(), Box<dyn error::Error>> {
                         if s == "stop" {
                             println!("Stopping server...");
                             println!("Sending reply to {}", client_addr);
-                            let reply = osc_utils::fill_packet("/server/reply", "stopping server");
-                            osc_utils::send_packet(&socket, client_addr, &reply)?;
+                            let reply = osc_tools::fill_packet("/server/reply", "stopping server");
+                            osc_tools::send_packet(&socket, client_addr, &reply)?;
                             break;
                         }
                     }
@@ -62,8 +62,8 @@ fn main() -> Result<(), Box<dyn error::Error>> {
         }
 
         println!("Sending reply to {}", client_addr);
-        let reply = osc_utils::fill_packet("/server/reply", "message received");
-        osc_utils::send_packet(&socket, client_addr, &reply)?;
+        let reply = osc_tools::fill_packet("/server/reply", "message received");
+        osc_tools::send_packet(&socket, client_addr, &reply)?;
     }
 
     Ok(())
