@@ -6,11 +6,21 @@ use std::error;
 use std::net::{Ipv4Addr, SocketAddrV4, UdpSocket};
 use std::time::Duration;
 
+use clap::builder::{styling, Styles};
 use clap::{Parser, Subcommand};
 use rosc::OscPacket;
 
+fn colors() -> Styles {
+    styling::Styles::styled()
+        .usage(styling::AnsiColor::Blue.on_default() | styling::Effects::BOLD)
+        .header(styling::AnsiColor::Blue.on_default() | styling::Effects::BOLD)
+        .literal(styling::AnsiColor::White.on_default() | styling::Effects::BOLD)
+        .placeholder(styling::AnsiColor::White.on_default())
+}
+
 /// Send a message to an OSC server
 #[derive(Parser)]
+#[command(styles(colors()))]
 #[command(version, long_about = None)]
 struct Arguments {
     /// Server IP address  (default: 127.0.0.1)
