@@ -2,7 +2,16 @@ use std::error;
 use std::io::ErrorKind;
 use std::net::{Ipv4Addr, SocketAddr, SocketAddrV4, UdpSocket};
 
+use clap::builder::{styling, Styles};
 use rosc::{OscMessage, OscPacket, OscType};
+
+pub fn colors() -> Styles {
+    styling::Styles::styled()
+        .usage(styling::AnsiColor::Blue.on_default() | styling::Effects::BOLD)
+        .header(styling::AnsiColor::Blue.on_default() | styling::Effects::BOLD)
+        .literal(styling::AnsiColor::White.on_default() | styling::Effects::BOLD)
+        .placeholder(styling::AnsiColor::White.on_default())
+}
 
 pub fn parse_addr(
     args_addr: Option<String>,

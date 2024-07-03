@@ -10,6 +10,7 @@ use rosc::{OscPacket, OscType};
 
 /// Receive messages from OSC clients
 #[derive(Parser)]
+#[command(styles(osc_tools::colors()))]
 #[command(version, long_about = None)]
 struct Arguments {
     /// Server IP address  (default: 0.0.0.0)
