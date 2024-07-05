@@ -1,6 +1,6 @@
 use std::error;
 use std::io::ErrorKind;
-use std::net::{Ipv4Addr, SocketAddr, SocketAddrV4, UdpSocket};
+use std::net::{SocketAddr, SocketAddrV4, UdpSocket};
 
 use clap::builder::{styling, Styles};
 use rosc::{OscMessage, OscPacket, OscType};
@@ -11,26 +11,6 @@ pub fn colors() -> Styles {
         .header(styling::AnsiColor::Blue.on_default() | styling::Effects::BOLD)
         .literal(styling::AnsiColor::White.on_default() | styling::Effects::BOLD)
         .placeholder(styling::AnsiColor::White.on_default())
-}
-
-pub fn parse_addr(
-    args_addr: Option<String>,
-    args_port: Option<u16>,
-    default: &str,
-) -> Result<SocketAddrV4, Box<dyn error::Error>> {
-    let addr = match args_addr.as_deref() {
-        Some(ip) => ip,
-        None => default,
-    };
-
-    let addr = addr.parse::<Ipv4Addr>()?;
-
-    let port = match args_port {
-        Some(num) => num,
-        None => 3131,
-    };
-
-    Ok(SocketAddrV4::new(addr, port))
 }
 
 pub fn fill_packet(osc_addr: &str, osc_args: &str) -> OscPacket {

@@ -1,7 +1,3 @@
-// Test with:
-// - osc-server (this package)
-// - oscdump 3131 (shipped with liblo)
-
 use std::error;
 use std::net::{Ipv4Addr, SocketAddrV4, UdpSocket};
 use std::time::Duration;
@@ -11,16 +7,15 @@ use rosc::OscPacket;
 
 /// Send a message to an OSC server
 #[derive(Parser)]
-#[command(styles(osc_tools::colors()))]
-#[command(version, long_about = None)]
+#[command(styles(osc_tools::colors()), version)]
 struct Arguments {
-    /// Server IP address  (default: 127.0.0.1)
-    #[arg(short, long)]
-    addr: Option<String>,
+    /// Server IP address
+    #[arg(short, long, default_value_t = Ipv4Addr::LOCALHOST)]
+    addr: Ipv4Addr,
 
-    /// Server port number (default: 3131)
-    #[arg(short, long)]
-    port: Option<u16>,
+    /// Server port number
+    #[arg(short, long, default_value_t = 3131)]
+    port: u16,
 
     #[command(subcommand)]
     command: Commands,
@@ -40,7 +35,7 @@ enum Commands {
 fn main() -> Result<(), Box<dyn error::Error>> {
     let args = Arguments::parse();
 
-    let server_addr = osc_tools::parse_addr(args.addr, args.port, "127.0.0.1")?;
+    let server_addr = SocketAddrV4::new(args.addr, args.port);
 
     // Allow client to send a message to any IP address (0.0.0.0)
     // from a port number assigned by the operating system (0)

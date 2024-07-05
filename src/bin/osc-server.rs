@@ -1,36 +1,30 @@
-// Test with:
-// - osc-client (this package)
-// - oscsend 127.0.0.1 3131 /oscsend/message s "hello!" (shipped with liblo)
-
 use std::error;
-use std::net::UdpSocket;
+use std::net::{Ipv4Addr, SocketAddrV4, UdpSocket};
 
 use clap::Parser;
 use rosc::{OscPacket, OscType};
 
 /// Receive messages from OSC clients
 #[derive(Parser)]
-#[command(styles(osc_tools::colors()))]
-#[command(version, long_about = None)]
+#[command(styles(osc_tools::colors()), version)]
 struct Arguments {
-    /// Server IP address  (default: 0.0.0.0)
-    #[arg(short, long)]
-    addr: Option<String>,
+    /// Server IP address
+    #[arg(short, long, default_value_t = Ipv4Addr::UNSPECIFIED)]
+    addr: Ipv4Addr,
 
-    /// Server port number (default: 3131)
-    #[arg(short, long)]
-    port: Option<u16>,
+    /// Server port number
+    #[arg(short, long, default_value_t = 3131)]
+    port: u16,
 }
 
 fn main() -> Result<(), Box<dyn error::Error>> {
     let args = Arguments::parse();
 
-    let server_addr = osc_tools::parse_addr(args.addr, args.port, "0.0.0.0")?;
-
-    if server_addr.port() < 1024 {
+    if args.port < 1024 {
         Err("cannot bind socket to system port")?;
     }
 
+    let server_addr = SocketAddrV4::new(args.addr, args.port);
     let socket = UdpSocket::bind(server_addr)?;
 
     let mut buffer = [0u8; rosc::decoder::MTU];
