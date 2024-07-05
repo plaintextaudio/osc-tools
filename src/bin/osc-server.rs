@@ -7,7 +7,7 @@ use rosc::{OscPacket, OscType};
 /// Receive messages from OSC clients
 #[derive(Parser)]
 #[command(styles(osc_tools::colors()), version)]
-struct Arguments {
+struct Args {
     /// Server IP address
     #[arg(short, long, default_value_t = Ipv4Addr::UNSPECIFIED)]
     addr: Ipv4Addr,
@@ -18,7 +18,7 @@ struct Arguments {
 }
 
 fn main() -> Result<(), Box<dyn error::Error>> {
-    let args = Arguments::parse();
+    let args = Args::parse();
 
     if args.port < 1024 {
         Err("cannot bind socket to system port")?;

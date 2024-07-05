@@ -8,7 +8,7 @@ use rosc::OscPacket;
 /// Send a message to an OSC server
 #[derive(Parser)]
 #[command(styles(osc_tools::colors()), version)]
-struct Arguments {
+struct Args {
     /// Server IP address
     #[arg(short, long, default_value_t = Ipv4Addr::LOCALHOST)]
     addr: Ipv4Addr,
@@ -33,7 +33,7 @@ enum Commands {
 }
 
 fn main() -> Result<(), Box<dyn error::Error>> {
-    let args = Arguments::parse();
+    let args = Args::parse();
 
     let server_addr = SocketAddrV4::new(args.addr, args.port);
 
@@ -44,13 +44,11 @@ fn main() -> Result<(), Box<dyn error::Error>> {
 
     match &args.command {
         Commands::Message { msg } => {
-            // Send message to server
             println!("Sending message to {}", server_addr);
             let message = osc_tools::fill_packet("/client/message", msg);
             osc_tools::send_packet(&socket, server_addr, &message)?;
         }
         Commands::Stop {} => {
-            // Send message to server
             println!("Sending message to {}", server_addr);
             let message = osc_tools::fill_packet("/client/message", "stop");
             osc_tools::send_packet(&socket, server_addr, &message)?;
