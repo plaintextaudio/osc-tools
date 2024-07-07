@@ -7,10 +7,10 @@ use rosc::{OscMessage, OscPacket, OscType};
 
 pub fn colors() -> Styles {
     styling::Styles::styled()
-        .usage(styling::AnsiColor::Blue.on_default() | styling::Effects::BOLD)
-        .header(styling::AnsiColor::Blue.on_default() | styling::Effects::BOLD)
-        .literal(styling::AnsiColor::White.on_default() | styling::Effects::BOLD)
-        .placeholder(styling::AnsiColor::White.on_default())
+        .usage(styling::AnsiColor::Green.on_default() | styling::Effects::BOLD)
+        .header(styling::AnsiColor::Green.on_default() | styling::Effects::BOLD)
+        .literal(styling::AnsiColor::Cyan.on_default() | styling::Effects::BOLD)
+        .placeholder(styling::AnsiColor::Cyan.on_default())
 }
 
 pub fn fill_packet(osc_addr: &str, osc_args: &str) -> OscPacket {
