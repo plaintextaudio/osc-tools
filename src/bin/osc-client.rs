@@ -44,12 +44,10 @@ fn main() -> Result<(), Box<dyn error::Error>> {
 
     match &args.command {
         Commands::Message { msg } => {
-            println!("Sending message to {}", server_addr);
             let message = osc_tools::fill_packet("/client/message", msg);
             osc_tools::send_packet(&socket, server_addr, &message)?;
         }
         Commands::Stop {} => {
-            println!("Sending message to {}", server_addr);
             let message = osc_tools::fill_packet("/client/message", "stop");
             osc_tools::send_packet(&socket, server_addr, &message)?;
         }

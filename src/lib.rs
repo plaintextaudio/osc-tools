@@ -27,6 +27,7 @@ pub fn send_packet(
 ) -> Result<(), Box<dyn error::Error>> {
     let buffer = rosc::encoder::encode(packet)?;
 
+    println!("Sending packet to {}", peer_addr);
     socket.send_to(&buffer, peer_addr)?;
 
     Ok(())
