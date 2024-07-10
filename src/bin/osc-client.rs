@@ -17,6 +17,10 @@ struct Args {
     #[arg(short, long, default_value_t = 3131)]
     port: u16,
 
+    /// Time to wait for reply (in ms)
+    #[arg(short, long, default_value_t = 500, value_name = "TIME")]
+    wait: u64,
+
     #[command(subcommand)]
     command: Commands,
 }
@@ -53,8 +57,13 @@ fn main() -> Result<(), Box<dyn error::Error>> {
         }
     }
 
+    if args.wait > 0 {
+        socket.set_read_timeout(Some(Duration::from_millis(args.wait)))?;
+    } else {
+        println!("Timeout disabled, press Ctrl+C to exit...");
+    }
+
     // Receive reply from server
-    socket.set_read_timeout(Some(Duration::from_secs(3)))?;
     let mut buffer = [0u8; rosc::decoder::MTU];
     let (reply_addr, reply) = osc_tools::recv_packet(&socket, &mut buffer)?;
 
