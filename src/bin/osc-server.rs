@@ -38,6 +38,6 @@ fn main() -> Result<(), Box<dyn Error>> {
         // Send reply
         let osc_addr = "/server/reply";
         let osc_args = vec![OscType::String("message received".to_string())];
-        osc_tools::send_packet(&osc_addr, &osc_args, &socket, client_addr)?;
+        osc_tools::send_packet(osc_addr, &osc_args, &socket, client_addr)?;
     }
 }
