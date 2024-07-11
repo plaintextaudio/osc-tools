@@ -2,12 +2,22 @@ use std::error::Error;
 use std::net::{Ipv4Addr, SocketAddrV4, UdpSocket};
 use std::time::Duration;
 
-use clap::{Parser, Subcommand};
+use clap::Parser;
 
 /// Send a message to an OSC server
 #[derive(Parser)]
 #[command(styles(osc_tools::color_help()), version)]
 struct Args {
+    /// OSC address (e.g. /synth)
+    address: String,
+
+    /// OSC types (e.g. ifs)
+    types: Option<String>,
+
+    /// OSC values (e.g. 6 -12.00 message)
+    #[arg(allow_negative_numbers = true)]
+    values: Vec<String>,
+
     /// Server IP address
     #[arg(short, long, default_value_t = Ipv4Addr::LOCALHOST)]
     addr: Ipv4Addr,
@@ -19,20 +29,6 @@ struct Args {
     /// Time to wait for reply (in ms)
     #[arg(short, long, default_value_t = 500, value_name = "TIME")]
     wait: u64,
-
-    #[command(subcommand)]
-    command: Commands,
-}
-
-#[derive(Subcommand)]
-enum Commands {
-    /// Send a user message to server
-    Message {
-        /// Message to send
-        msg: String,
-    },
-    /// Ask the server to stop
-    Stop {},
 }
 
 fn main() -> Result<(), Box<dyn Error>> {
@@ -45,16 +41,10 @@ fn main() -> Result<(), Box<dyn Error>> {
     let client_addr = SocketAddrV4::new(Ipv4Addr::UNSPECIFIED, 0);
     let socket = UdpSocket::bind(client_addr)?;
 
-    match &args.command {
-        Commands::Message { msg } => {
-            let message = osc_tools::fill_packet("/client/message", msg);
-            osc_tools::send_packet(&socket, server_addr, &message)?;
-        }
-        Commands::Stop {} => {
-            let message = osc_tools::fill_packet("/client/message", "stop");
-            osc_tools::send_packet(&socket, server_addr, &message)?;
-        }
-    }
+    // Send message
+    println!("Sending message:");
+    let message = osc_tools::parse_cli_osc(&args.address, &args.types, &args.values)?;
+    osc_tools::send_packet(&socket, server_addr, &message)?;
 
     if args.wait > 0 {
         socket.set_read_timeout(Some(Duration::from_millis(args.wait)))?;
@@ -62,9 +52,9 @@ fn main() -> Result<(), Box<dyn Error>> {
         println!("Timeout disabled, press Ctrl+C to exit...");
     }
 
-    // Receive reply from server
+    // Receive reply
     let mut buffer = [0u8; rosc::decoder::MTU];
-    let (reply_addr, reply) = osc_tools::recv_packet(&socket, &mut buffer)?;
+    let (reply_addr, _) = osc_tools::recv_packet(&socket, &mut buffer)?;
 
     if reply_addr != server_addr {
         Err("send and reply address mismatch")?

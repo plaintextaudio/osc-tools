@@ -33,7 +33,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         // Receive message
         let (client_addr, _) = osc_tools::recv_packet(&socket, &mut buffer)?;
 
-        // Send reply
+        println!("Sending reply…");
         let reply = osc_tools::fill_packet("/server/reply", "message received");
         osc_tools::send_packet(&socket, client_addr, &reply)?;
     }
