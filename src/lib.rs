@@ -13,13 +13,6 @@ pub fn color_help() -> Styles {
         .placeholder(styling::AnsiColor::Cyan.on_default())
 }
 
-pub fn fill_packet(osc_addr: &str, osc_args: &str) -> OscPacket {
-    OscPacket::Message(OscMessage {
-        addr: osc_addr.to_string(),
-        args: vec![OscType::String(osc_args.to_string())],
-    })
-}
-
 pub fn parse_osc_args(
     types: &Option<String>,
     values: &Vec<String>,
