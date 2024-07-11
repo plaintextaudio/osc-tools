@@ -2,6 +2,7 @@ use std::error::Error;
 use std::net::{Ipv4Addr, SocketAddrV4, UdpSocket};
 
 use clap::Parser;
+use rosc::OscType;
 
 /// Receive messages from OSC clients
 #[derive(Parser)]
@@ -28,13 +29,15 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     let mut buffer = [0u8; rosc::decoder::MTU];
     println!("Waiting for messages on {}", server_addr);
+    println!("Press Ctrl+C to exit");
 
     loop {
         // Receive message
         let (client_addr, _) = osc_tools::recv_packet(&socket, &mut buffer)?;
 
-        println!("Sending reply…");
-        let reply = osc_tools::fill_packet("/server/reply", "message received");
-        osc_tools::send_packet(&socket, client_addr, &reply)?;
+        // Send reply
+        let osc_addr = "/server/reply";
+        let osc_args = vec![OscType::String("message received".to_string())];
+        osc_tools::send_packet(&osc_addr, &osc_args, &socket, client_addr)?;
     }
 }

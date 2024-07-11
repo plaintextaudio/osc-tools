@@ -41,15 +41,19 @@ fn main() -> Result<(), Box<dyn Error>> {
     let client_addr = SocketAddrV4::new(Ipv4Addr::UNSPECIFIED, 0);
     let socket = UdpSocket::bind(client_addr)?;
 
-    // Send message
     println!("Sending message:");
-    let message = osc_tools::parse_cli_osc(&args.address, &args.types, &args.values)?;
-    osc_tools::send_packet(&socket, server_addr, &message)?;
+    println!("addr:\t{}", args.address);
+    println!("types:\t{:?}", args.types);
+    println!("values:\t{:?}", args.values);
+
+    // Send message
+    let osc_args = osc_tools::parse_osc_args(&args.types, &args.values)?;
+    osc_tools::send_packet(&args.address, &osc_args, &socket, server_addr)?;
 
     if args.wait > 0 {
         socket.set_read_timeout(Some(Duration::from_millis(args.wait)))?;
     } else {
-        println!("Timeout disabled, press Ctrl+C to exit...");
+        println!("\nRead timeout disabled, press Ctrl+C to exit");
     }
 
     // Receive reply

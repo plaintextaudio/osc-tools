@@ -20,23 +20,21 @@ pub fn fill_packet(osc_addr: &str, osc_args: &str) -> OscPacket {
     })
 }
 
-pub fn parse_cli_osc(
-    address: &String,
+pub fn parse_osc_args(
     types: &Option<String>,
     values: &Vec<String>,
-) -> Result<OscPacket, Box<dyn Error>> {
+) -> Result<Vec<OscType>, Box<dyn Error>> {
     let mut arguments: Vec<OscType> = Vec::new();
-
-    println!("addr:\t{}", address);
-    println!("type:\t{:?}", types);
-    println!("value:\t{:?}", values);
 
     match types {
         Some(t) => {
+            if values.len() > t.chars().count() {
+                Err("too many values provided for the given types")?;
+            }
+
             for (i, c) in t.chars().enumerate() {
                 if values.len() < (i + 1) {
-                    let e = format!("missing value for type {}", i);
-                    Err(e)?
+                    Err("missing values for the given types")?;
                 }
                 match c {
                     'i' => arguments.push(OscType::Int(values[i].parse::<i32>()?)),
@@ -46,23 +44,24 @@ pub fn parse_cli_osc(
                 }
             }
         }
-        None => println!("test"),
+        None => (),
     }
 
-    let packet = OscPacket::Message(OscMessage {
-        addr: address.to_string(),
-        args: arguments,
-    });
-
-    Ok(packet)
+    Ok(arguments)
 }
 
 pub fn send_packet(
+    osc_addr: &str,
+    osc_args: &[OscType],
     socket: &UdpSocket,
     peer_addr: SocketAddrV4,
-    packet: &OscPacket,
 ) -> Result<(), Box<dyn Error>> {
-    let buffer = rosc::encoder::encode(packet)?;
+    let packet = OscPacket::Message(OscMessage {
+        addr: osc_addr.to_string(),
+        args: osc_args.to_vec(),
+    });
+
+    let buffer = rosc::encoder::encode(&packet)?;
 
     socket.send_to(&buffer, peer_addr)?;
 
