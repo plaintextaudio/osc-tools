@@ -1,4 +1,4 @@
-use std::error;
+use std::error::Error;
 use std::net::{Ipv4Addr, SocketAddrV4, UdpSocket};
 use std::time::Duration;
 
@@ -36,7 +36,7 @@ enum Commands {
     Stop {},
 }
 
-fn main() -> Result<(), Box<dyn error::Error>> {
+fn main() -> Result<(), Box<dyn Error>> {
     let args = Args::parse();
 
     let server_addr = SocketAddrV4::new(args.addr, args.port);

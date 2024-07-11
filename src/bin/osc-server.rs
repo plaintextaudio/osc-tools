@@ -1,4 +1,4 @@
-use std::error;
+use std::error::Error;
 use std::net::{Ipv4Addr, SocketAddrV4, UdpSocket};
 
 use clap::Parser;
@@ -17,7 +17,7 @@ struct Args {
     port: u16,
 }
 
-fn main() -> Result<(), Box<dyn error::Error>> {
+fn main() -> Result<(), Box<dyn Error>> {
     let args = Args::parse();
 
     if args.port < 1024 {

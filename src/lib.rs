@@ -1,4 +1,4 @@
-use std::error;
+use std::error::Error;
 use std::io::ErrorKind;
 use std::net::{SocketAddr, SocketAddrV4, UdpSocket};
 
@@ -24,7 +24,7 @@ pub fn send_packet(
     socket: &UdpSocket,
     peer_addr: SocketAddrV4,
     packet: &OscPacket,
-) -> Result<(), Box<dyn error::Error>> {
+) -> Result<(), Box<dyn Error>> {
     let buffer = rosc::encoder::encode(packet)?;
 
     println!("Sending packet to {}", peer_addr);
@@ -36,7 +36,7 @@ pub fn send_packet(
 pub fn recv_packet(
     socket: &UdpSocket,
     buffer: &mut [u8],
-) -> Result<(SocketAddrV4, OscPacket), Box<dyn error::Error>> {
+) -> Result<(SocketAddrV4, OscPacket), Box<dyn Error>> {
     let (size, packet_addr) = match socket.recv_from(buffer) {
         Ok(packet) => packet,
         Err(ref e) if e.kind() == ErrorKind::WouldBlock => {
