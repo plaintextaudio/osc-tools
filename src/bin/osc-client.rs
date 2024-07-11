@@ -7,7 +7,7 @@ use rosc::OscPacket;
 
 /// Send a message to an OSC server
 #[derive(Parser)]
-#[command(styles(osc_tools::colors()), version)]
+#[command(styles(osc_tools::color_help()), version)]
 struct Args {
     /// Server IP address
     #[arg(short, long, default_value_t = Ipv4Addr::LOCALHOST)]

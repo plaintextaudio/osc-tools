@@ -5,7 +5,7 @@ use std::net::{SocketAddr, SocketAddrV4, UdpSocket};
 use clap::builder::{styling, Styles};
 use rosc::{OscMessage, OscPacket, OscType};
 
-pub fn colors() -> Styles {
+pub fn color_help() -> Styles {
     styling::Styles::styled()
         .usage(styling::AnsiColor::Green.on_default() | styling::Effects::BOLD)
         .header(styling::AnsiColor::Green.on_default() | styling::Effects::BOLD)
