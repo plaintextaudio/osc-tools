@@ -53,5 +53,14 @@ pub fn recv_packet(
 
     let (_, packet) = rosc::decoder::decode_udp(&buffer[..size])?;
 
+    match &packet {
+        OscPacket::Message(msg) => {
+            println!("{:?}", msg);
+        }
+        OscPacket::Bundle(_) => {
+            Err("OSC bundles not supported")?;
+        }
+    }
+
     Ok((packet_addr, packet))
 }

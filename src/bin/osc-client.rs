@@ -3,7 +3,6 @@ use std::net::{Ipv4Addr, SocketAddrV4, UdpSocket};
 use std::time::Duration;
 
 use clap::{Parser, Subcommand};
-use rosc::OscPacket;
 
 /// Send a message to an OSC server
 #[derive(Parser)]
@@ -69,15 +68,6 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     if reply_addr != server_addr {
         Err("send and reply address mismatch")?
-    }
-
-    match reply {
-        OscPacket::Message(msg) => {
-            println!("{:?}", msg);
-        }
-        OscPacket::Bundle(bun) => {
-            println!("{:?}", bun);
-        }
     }
 
     Ok(())
