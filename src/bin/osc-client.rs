@@ -47,8 +47,9 @@ fn main() -> Result<(), Box<dyn Error>> {
     println!("values:\t{:?}", args.values);
 
     // Send message
+    let osc_addr = &args.address;
     let osc_args = osc_tools::parse_osc_args(&args.types, &args.values)?;
-    osc_tools::send_packet(&args.address, &osc_args, &socket, server_addr)?;
+    osc_tools::send_packet(osc_addr, &osc_args, &socket, server_addr)?;
 
     if args.wait > 0 {
         socket.set_read_timeout(Some(Duration::from_millis(args.wait)))?;
