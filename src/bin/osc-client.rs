@@ -4,17 +4,29 @@ use std::time::Duration;
 
 use clap::Parser;
 
+const DESCRIPTION: &str = "\
+Types:
+  i  32-bit signed integer
+  f  32-bit floating point number
+  s  string of ASCII characters
+
+Examples:
+  osc-client /server/status
+  osc-client /synth ifs 6 -12.00 string
+";
+
 /// Send a message to an OSC server
 #[derive(Parser)]
 #[command(styles(osc_tools::color_help()), version)]
+#[command(after_help = DESCRIPTION)]
 struct Args {
-    /// OSC address (e.g. /synth)
+    /// OSC address
     address: String,
 
-    /// OSC types (e.g. ifs)
+    /// OSC types
     types: Option<String>,
 
-    /// OSC values (e.g. 6 -12.00 message)
+    /// OSC values
     #[arg(allow_negative_numbers = true)]
     values: Vec<String>,
 
