@@ -3,6 +3,7 @@ use std::net::{Ipv4Addr, SocketAddrV4, UdpSocket};
 use std::time::Duration;
 
 use clap::Parser;
+use rosc::{OscMessage, OscPacket};
 
 const DESCRIPTION: &str = "\
 Types:
@@ -51,18 +52,19 @@ fn main() -> Result<(), Box<dyn Error>> {
     let client_addr = SocketAddrV4::new(Ipv4Addr::UNSPECIFIED, 0);
     let socket = UdpSocket::bind(client_addr)?;
 
+    let server_addr = SocketAddrV4::new(args.addr, args.port);
+
     println!("Sending message:");
     println!("addr:\t{}", args.address);
     println!("types:\t{:?}", args.types);
     println!("values:\t{:?}", args.values);
 
     // Send message
-    let message = osc_tools::CustomPacket {
+    let message = OscPacket::Message(OscMessage {
         addr: args.address,
         args: osc_tools::parse_osc_args(&args.types, &args.values)?,
-        peer: SocketAddrV4::new(args.addr, args.port),
-    };
-    osc_tools::send_packet(&socket, &message)?;
+    });
+    osc_tools::send_packet(&socket, &message, &server_addr)?;
 
     if args.wait > 0 {
         socket.set_read_timeout(Some(Duration::from_millis(args.wait)))?;
@@ -74,7 +76,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     let mut buffer = [0u8; rosc::decoder::MTU];
     let (reply_addr, _) = osc_tools::recv_packet(&socket, &mut buffer)?;
 
-    if reply_addr != message.peer {
+    if reply_addr != server_addr {
         Err("send and reply address mismatch")?
     }
 
