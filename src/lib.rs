@@ -5,6 +5,12 @@ use std::net::{SocketAddr, SocketAddrV4, UdpSocket};
 use clap::builder::{styling, Styles};
 use rosc::{OscMessage, OscPacket, OscType};
 
+pub struct CustomPacket {
+    pub addr: String,       // OSC address
+    pub args: Vec<OscType>, // OSC arguments
+    pub peer: SocketAddrV4, // Peer IP address
+}
+
 pub fn color_help() -> Styles {
     styling::Styles::styled()
         .usage(styling::AnsiColor::Green.on_default() | styling::Effects::BOLD)
@@ -43,20 +49,14 @@ pub fn parse_osc_args(
     Ok(arguments)
 }
 
-pub fn send_packet(
-    osc_addr: &str,
-    osc_args: &[OscType],
-    socket: &UdpSocket,
-    peer_addr: SocketAddrV4,
-) -> Result<(), Box<dyn Error>> {
-    let packet = OscPacket::Message(OscMessage {
-        addr: osc_addr.to_string(),
-        args: osc_args.to_vec(),
+pub fn send_packet(socket: &UdpSocket, packet: &CustomPacket) -> Result<(), Box<dyn Error>> {
+    let msg = OscPacket::Message(OscMessage {
+        addr: packet.addr.clone(),
+        args: packet.args.clone(),
     });
 
-    let buffer = rosc::encoder::encode(&packet)?;
-
-    socket.send_to(&buffer, peer_addr)?;
+    let buffer = rosc::encoder::encode(&msg)?;
+    socket.send_to(&buffer, packet.peer)?;
 
     Ok(())
 }

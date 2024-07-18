@@ -36,8 +36,11 @@ fn main() -> Result<(), Box<dyn Error>> {
         let (client_addr, _) = osc_tools::recv_packet(&socket, &mut buffer)?;
 
         // Send reply
-        let osc_addr = "/server/reply";
-        let osc_args = vec![OscType::String("message received".to_string())];
-        osc_tools::send_packet(osc_addr, &osc_args, &socket, client_addr)?;
+        let reply = osc_tools::CustomPacket {
+            addr: "/server/reply".to_string(),
+            args: vec![OscType::String("message received".to_string())],
+            peer: client_addr,
+        };
+        osc_tools::send_packet(&socket, &reply)?;
     }
 }

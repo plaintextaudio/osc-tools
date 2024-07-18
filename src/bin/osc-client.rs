@@ -46,8 +46,6 @@ struct Args {
 fn main() -> Result<(), Box<dyn Error>> {
     let args = Args::parse();
 
-    let server_addr = SocketAddrV4::new(args.addr, args.port);
-
     // Allow client to send a message to any IP address (0.0.0.0)
     // from a port number assigned by the operating system (0)
     let client_addr = SocketAddrV4::new(Ipv4Addr::UNSPECIFIED, 0);
@@ -59,9 +57,12 @@ fn main() -> Result<(), Box<dyn Error>> {
     println!("values:\t{:?}", args.values);
 
     // Send message
-    let osc_addr = &args.address;
-    let osc_args = osc_tools::parse_osc_args(&args.types, &args.values)?;
-    osc_tools::send_packet(osc_addr, &osc_args, &socket, server_addr)?;
+    let message = osc_tools::CustomPacket {
+        addr: args.address,
+        args: osc_tools::parse_osc_args(&args.types, &args.values)?,
+        peer: SocketAddrV4::new(args.addr, args.port),
+    };
+    osc_tools::send_packet(&socket, &message)?;
 
     if args.wait > 0 {
         socket.set_read_timeout(Some(Duration::from_millis(args.wait)))?;
@@ -73,7 +74,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     let mut buffer = [0u8; rosc::decoder::MTU];
     let (reply_addr, _) = osc_tools::recv_packet(&socket, &mut buffer)?;
 
-    if reply_addr != server_addr {
+    if reply_addr != message.peer {
         Err("send and reply address mismatch")?
     }
 
