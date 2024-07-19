@@ -3,7 +3,7 @@ use std::io::ErrorKind;
 use std::net::{SocketAddr, SocketAddrV4, UdpSocket};
 
 use clap::builder::{styling, Styles};
-use rosc::{OscPacket, OscType};
+use rosc::{OscMessage, OscPacket, OscType};
 
 pub struct CustomPacket {
     pub addr: String,       // OSC address
@@ -51,10 +51,13 @@ pub fn parse_osc_args(
 
 pub fn send_packet(
     socket: &UdpSocket,
-    packet: &OscPacket,
+    message: &OscMessage,
     peer: &SocketAddrV4,
 ) -> Result<(), Box<dyn Error>> {
-    let buffer = rosc::encoder::encode(packet)?;
+    let packet = OscPacket::Message(message.clone());
+
+    let buffer = rosc::encoder::encode(&packet)?;
+
     socket.send_to(&buffer, peer)?;
 
     Ok(())

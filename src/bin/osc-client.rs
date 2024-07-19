@@ -3,7 +3,7 @@ use std::net::{Ipv4Addr, SocketAddrV4, UdpSocket};
 use std::time::Duration;
 
 use clap::Parser;
-use rosc::{OscMessage, OscPacket};
+use rosc::OscMessage;
 
 const DESCRIPTION: &str = "\
 Types:
@@ -54,17 +54,21 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     let server_addr = SocketAddrV4::new(args.addr, args.port);
 
+    // Initialize message
+    let mut msg = OscMessage {
+        addr: "/".to_string(),
+        args: Vec::new(),
+    };
+
     println!("Sending message:");
     println!("addr:\t{}", args.address);
     println!("types:\t{:?}", args.types);
     println!("values:\t{:?}", args.values);
 
     // Send message
-    let message = OscPacket::Message(OscMessage {
-        addr: args.address,
-        args: osc_tools::parse_osc_args(&args.types, &args.values)?,
-    });
-    osc_tools::send_packet(&socket, &message, &server_addr)?;
+    msg.addr = args.address;
+    msg.args = osc_tools::parse_osc_args(&args.types, &args.values)?;
+    osc_tools::send_packet(&socket, &msg, &server_addr)?;
 
     if args.wait > 0 {
         socket.set_read_timeout(Some(Duration::from_millis(args.wait)))?;
