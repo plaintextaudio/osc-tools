@@ -66,6 +66,7 @@ pub fn send_packet(
 pub fn recv_packet(
     socket: &UdpSocket,
     buffer: &mut [u8],
+    verbose: bool,
 ) -> Result<(SocketAddrV4, OscPacket), Box<dyn Error>> {
     let (size, packet_addr) = match socket.recv_from(buffer) {
         Ok(packet) => packet,
@@ -74,7 +75,10 @@ pub fn recv_packet(
         }
         Err(e) => Err(e)?,
     };
-    println!("\nReceived packet of {} bytes from {}", size, packet_addr);
+
+    if verbose {
+        println!("\nReceived packet of {} bytes from {}", size, packet_addr);
+    }
 
     let packet_addr = match packet_addr {
         SocketAddr::V4(ipv4) => ipv4,
@@ -85,7 +89,14 @@ pub fn recv_packet(
 
     match &packet {
         OscPacket::Message(msg) => {
-            println!("{:?}", msg);
+            if verbose {
+                println!("{:?}", msg);
+            } else {
+                match &msg.args[0] {
+                    OscType::String(s) => println!("{}", s),
+                    _ => (),
+                }
+            }
         }
         OscPacket::Bundle(_) => {
             Err("OSC bundles not supported")?;

@@ -39,11 +39,11 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     loop {
         // Receive message
-        let (client_addr, _) = osc_tools::recv_packet(&socket, &mut buffer)?;
+        let (client_addr, _) = osc_tools::recv_packet(&socket, &mut buffer, true)?;
 
         // Send reply
         reply.addr = "/server/reply".to_string();
-        reply.args = vec![OscType::String("message received".to_string())];
+        reply.args = vec![OscType::String("Message received".to_string())];
         osc_tools::send_packet(&socket, &reply, &client_addr)?;
     }
 }

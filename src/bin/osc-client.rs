@@ -42,6 +42,10 @@ struct Args {
     /// Time to wait for reply (in ms)
     #[arg(short, long, default_value_t = 500, value_name = "TIME")]
     wait: u64,
+
+    /// Use verbose output
+    #[arg(short, long)]
+    verbose: bool,
 }
 
 fn main() -> Result<(), Box<dyn Error>> {
@@ -78,7 +82,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     // Receive reply
     let mut buffer = [0u8; rosc::decoder::MTU];
-    let (reply_addr, _) = osc_tools::recv_packet(&socket, &mut buffer)?;
+    let (reply_addr, _) = osc_tools::recv_packet(&socket, &mut buffer, args.verbose)?;
 
     if reply_addr != server_addr {
         Err("send and reply address mismatch")?
