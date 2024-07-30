@@ -64,10 +64,12 @@ fn main() -> Result<(), Box<dyn Error>> {
         args: Vec::new(),
     };
 
-    println!("Sending message:");
-    println!("addr:\t{}", args.address);
-    println!("types:\t{:?}", args.types);
-    println!("values:\t{:?}", args.values);
+    if args.verbose {
+        println!("Sending message:");
+        println!("addr:\t{}", args.address);
+        println!("types:\t{:?}", args.types);
+        println!("values:\t{:?}", args.values);
+    }
 
     // Send message
     msg.addr = args.address;
