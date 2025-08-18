@@ -1,9 +1,9 @@
 [package]
 name = "osc-tools"
 version = "0.1.0"
-edition = "2021"
+edition = "2024"
 description = "Open Sound Control command line tools and library"
 
 [dependencies]
-clap = { version = "4.5.8", features = ["derive"] }
+clap = { version = "4.5", features = ["derive"] }
 rosc = "0.10.1"
