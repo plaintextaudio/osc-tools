@@ -2,7 +2,7 @@ use std::error::Error;
 use std::io::ErrorKind;
 use std::net::{SocketAddr, SocketAddrV4, UdpSocket};
 
-use clap::builder::{styling, Styles};
+use clap::builder::{Styles, styling};
 use rosc::{OscMessage, OscPacket, OscType};
 
 pub struct CustomPacket {
