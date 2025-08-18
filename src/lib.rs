@@ -2,21 +2,24 @@ use std::error::Error;
 use std::io::ErrorKind;
 use std::net::{SocketAddr, SocketAddrV4, UdpSocket};
 
-use clap::builder::{Styles, styling};
+use clap::builder::styling::{AnsiColor, Styles};
 use rosc::{OscMessage, OscPacket, OscType};
+
+pub const STYLES: Styles = Styles::styled()
+    .header(AnsiColor::Green.on_default().bold().underline())
+    .usage(AnsiColor::Green.on_default().bold().underline())
+    .literal(AnsiColor::Cyan.on_default().bold())
+    .placeholder(AnsiColor::Yellow.on_default().italic())
+    .context(AnsiColor::Yellow.on_default().italic())
+    .context_value(AnsiColor::Yellow.on_default().italic())
+    .error(AnsiColor::Red.on_default().bold().underline())
+    .valid(AnsiColor::White.on_default().italic())
+    .invalid(AnsiColor::White.on_default().italic());
 
 pub struct CustomPacket {
     pub addr: String,       // OSC address
     pub args: Vec<OscType>, // OSC arguments
     pub peer: SocketAddrV4, // Peer IP address
-}
-
-pub fn color_help() -> Styles {
-    styling::Styles::styled()
-        .usage(styling::AnsiColor::Green.on_default() | styling::Effects::BOLD)
-        .header(styling::AnsiColor::Green.on_default() | styling::Effects::BOLD)
-        .literal(styling::AnsiColor::Cyan.on_default() | styling::Effects::BOLD)
-        .placeholder(styling::AnsiColor::Cyan.on_default())
 }
 
 pub fn parse_osc_args(

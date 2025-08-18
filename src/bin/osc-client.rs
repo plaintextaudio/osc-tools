@@ -18,7 +18,7 @@ Examples:
 
 /// Send a message to an OSC server
 #[derive(Parser)]
-#[command(styles(osc_tools::color_help()), version)]
+#[command(styles = osc_tools::STYLES, version)]
 #[command(after_help = DESCRIPTION)]
 struct Args {
     /// OSC address
